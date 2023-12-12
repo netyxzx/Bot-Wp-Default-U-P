@@ -24,7 +24,8 @@ def login(site):
 
 def check(site):
         try:
-                response = requests.get(site + "/wp-admin/install.php",headers = {'User-Agent': 'Mozilla/5.0 (Windows N>                result = response.content.split('<h1>')[1].split('</h1>')[0]
+                response = requests.get(site + "/wp-admin/install.php",headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'},timeout=10)                
+                result = response.content.split('<h1>')[1].split('</h1>')[0]
                 if result == "Already Installed":
                         print(Fore.YELLOW+ "{} [Wordpress]".format(site))
                         login(site)
