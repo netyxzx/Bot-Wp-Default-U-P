@@ -1,4 +1,4 @@
-# Bot-Wp-Default-U-P
+# Bot-Wp-Default U/P
 By Mimpi Basah
 
 - Only Python3
