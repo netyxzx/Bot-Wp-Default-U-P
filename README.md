@@ -9,7 +9,7 @@ By Mimpi Basah
   pip3 install multiprocessing
 
 - input list :
-  nano namelist.txt -> paste -> CTRL S + x ( Save )
+  nano namelist.txt -> paste -> CTRL S + CTRL x ( Save )
 
 - Run :
   -> python3 bot.py
