@@ -41,8 +41,7 @@ def process_site(site):
 
 
 if __name__ == '__main__':
-        print("{} Wp Default U/P | {}Shin Code\n".format(Fore.YELLOW, Fore.CYAN))
-        file = input("File: ")
+        file = input("File : ")
         with open(file, "r") as file_content:
                 sites = file_content.readlines()
         pool = Pool(processes=20)
